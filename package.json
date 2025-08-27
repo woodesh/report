@@ -1,0 +1,23 @@
+{
+  "name": "webpage-mirror-system",
+  "version": "1.0.0",
+  "description": "网页镜像展示系统",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node test/demo.js"
+  },
+  "dependencies": {
+    "hono": "^4.0.0",
+    "playwright": "^1.40.0",
+    "@hono/node-server": "^1.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0"
+  },
+  "keywords": ["web", "mirror", "crawler", "iframe"],
+  "author": "",
+  "license": "MIT"
+}

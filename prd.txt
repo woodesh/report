@@ -1,0 +1,133 @@
+PRD：网页镜像展示系统
+1. 产品目标
+
+构建一个 网页镜像展示系统：
+
+用户通过访问 /{标识码} 即可浏览一个网站的完整镜像页面（含 HTML、资源）。
+
+页面来源于用户请求时提供的包含 iframe 的页面，获取 iframe 的真实地址，系统抓取后存储于content。
+
+2. 功能需求
+2.1 页面抓取
+
+输入：GET /fetch?u=<网址>
+
+逻辑：
+
+使用 Playwright 打开目标页面。
+
+判断页面中是否存在 <iframe>：
+
+若存在，取第一个 iframe 的 src 地址（后续可支持多 iframe）。
+
+请求 iframe 的 URL，获取完整 HTML 源码。
+
+处理页面内资源路径（CSS/JS/图片），转换为绝对路径或本地存储地址。
+
+存入content目录（包括标识码、原始 URL、iframe URL（若有）、源码内容）。
+
+输出：
+
+{
+  "code": "abcd1234",
+  "iframe_url": "https://iframe.example.com",
+  "preview_url": "https://domain.com/abcd1234"
+}
+
+2.2 页面展示
+
+输入：GET /{标识码}
+
+逻辑：
+
+系统查询content目录，根据标识码获取 HTML 内容。
+
+返回 HTML，浏览器可正常渲染。
+
+输出：完整网页镜像。
+
+2.3 资源镜像（增强功能）
+
+可选配置：是否将 CSS/JS/图片等静态资源下载到本地并修改 HTML 引用。
+
+优点：页面可独立运行，不依赖原网站。
+
+缺点：实现复杂度增加，需要定期同步更新资源。
+
+3. 技术栈选型
+3.1 后端
+
+框架：
+
+Node.js：Honojs（生态成熟，配合 Playwright/puppeteer）
+
+3.2 爬取引擎
+
+Playwright（推荐）：支持多浏览器（Chromium/Firefox/Webkit），适合获取动态 iframe 和复杂页面。
+
+3.3 存储
+
+文件存储（若启用资源镜像）：本地文件系统
+
+3.4 前端
+
+不需要额外开发，直接由浏览器渲染存储的 HTML。
+
+4. 系统流程
+4.1 抓取流程
+用户请求 GET /fetch?u=https://target.com
+        ↓
+系统调用 Playwright 打开页面
+        ↓
+检测 iframe → 若存在，取 iframe.src → 请求 iframe 源码
+        ↓
+解析 HTML，修正资源路径（或下载资源）
+        ↓
+生成标识码，存储 {url, iframe_url, content, code}
+        ↓
+返回 {code, preview_url}
+
+4.2 展示流程
+用户访问 GET /{标识码}
+        ↓
+系统查数据库，找到对应 HTML
+        ↓
+返回 HTML → 浏览器渲染成镜像页面
+
+5. API 设计
+5.1 获取页面并存储
+GET /fetch?u=<url>
+响应：
+{
+  "code": "abcd1234",
+  "iframe_url": "https://iframe.example.com",
+  "preview_url": "https://domain.com/abcd1234"
+}
+
+5.2 展示页面
+GET /{code}
+返回：HTML 内容
+
+6. 非功能需求
+
+性能：Playwright 每次拉起浏览器较慢，需考虑浏览器池或并发限制。
+
+安全：
+
+防止 SSRF（需校验 URL 白名单/黑名单）。
+
+防止恶意页面注入脚本影响系统（建议沙箱渲染）。
+
+扩展性：
+
+后续可支持批量抓取、定时更新页面内容。
+
+可扩展为“网页存档系统”。
+
+7. 交付物
+
+API 服务（/fetch, /{code}）
+
+表设计（存储 URL、iframe_url、标识码、content）
+
+可运行的 demo
