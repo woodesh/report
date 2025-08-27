@@ -251,7 +251,7 @@ app.get('/:code', async (c) => {
         ">款世</div>
       </div>
     </div>
-    
+    <div style="height: 40px;"></div>
   `;
   
   // 在body标签开始后插入页头
